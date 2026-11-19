@@ -26,7 +26,7 @@ Read the one that fits before the first call; a one-tool question needs none.
 | update the mesh, follow, retry or cancel an update | `references/update.md` |
 | read or post chat, message someone, wait for a reply (the Chat app) | `references/chat.md` |
 | git repos, issues, the issues board, PRs, clone or push; set up a repo in a cloud session with none; commit or push in a checkout whose origin is the mesh git | `references/git.md` |
-| fix a repository's issues end to end: fix, move on the board, merge, prune branches, release until it builds, update the mesh and watch it | `references/issues.md` (and `git.md`) |
+| fix a repository's issues end to end: fix, move on the board, merge, prune branches, release until it builds, update the mesh and health-check it | `references/issues.md` (and `git.md`) |
 
 ## Rules
 

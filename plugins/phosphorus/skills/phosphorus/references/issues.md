@@ -47,16 +47,18 @@ Only for the repository the mesh runs: its release writes the update feed (in ph
 3. `update_control` `start`. Note the time. Follow `update_status` every 15 to 30 s until it ends, reporting each host's change briefly.
 4. A host failed: quote its error. A cause outside the code (host down, download blip): `update_control` `start` with `hosts` set to the failed ones, at most twice. `couldn't fetch wintun` and Intel Macs: see `update.md`. A failure in the release itself: treat it as a step 6 failure.
 
-## 6. Watch
+## 6. Health check
 
-Before step 5 starts, keep a `services` snapshot of what is up. Then for ten minutes after the last host finishes, every two minutes, in one parallel batch:
+Before step 5 starts, keep a `services` snapshot of what is up. Once the whole update has finished, check once, in one parallel batch:
 
 - `mesh_hosts` `health: true`: every phosphorus host up and on the new version.
 - `host_logs` on each host with `level: "error"` and `since` the update's start: new errors, compared with the same window before the update where it's unclear whether they are new.
 - `services`: every service that was up before the update still up.
 
+A host still restarting or a service still starting: check that one again a minute later, once.
+
 A failure the release caused (a panic, an error that started with the new version, a service that stopped answering): file an issue (`POST /issues` with the log lines, then `POST /issues/{n}/board` `{ "column": "doing" }`), fix it as in step 2, and go round steps 4 to 6 again. Never roll a host back to an older version; fix forward. A failure outside the release (a host off the tailnet, a disk full): report it, don't fix it in code. The same failure after two fixes: stop and report.
 
 ## Report
 
-Lead with the result: the version now on the mesh, or where the run stopped and why. Then one line per issue (number, title, pull request, Done or why not), the branches deleted and the ones left, each release run and its outcome, each host's version and any failure watched, with the evidence lines verbatim.
+Lead with the result: the version now on the mesh, or where the run stopped and why. Then one line per issue (number, title, pull request, Done or why not), the branches deleted and the ones left, each release run and its outcome, each host's version and anything the health check found, with the evidence lines verbatim.

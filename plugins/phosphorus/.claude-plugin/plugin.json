@@ -2,14 +2,6 @@
   "author": {
     "name": "Phosphorus"
   },
-  "description": "Phosphorus mesh: hosts, services, files, terminals, git, chat. Signs in as your mesh user.",
-  "name": "phosphorus",
-  "userConfig": {
-    "domain": {
-      "description": "Your mesh's domain, without https://, e.g. example.com",
-      "required": true,
-      "title": "Mesh domain",
-      "type": "string"
-    }
-  }
+  "description": "Phosphorus mesh skill: hosts, services, files, terminals, git, chat. Pairs with your mesh's connector.",
+  "name": "phosphorus"
 }

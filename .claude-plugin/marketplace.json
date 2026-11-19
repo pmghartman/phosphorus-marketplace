@@ -5,7 +5,7 @@
   },
   "plugins": [
     {
-      "description": "Phosphorus mesh: hosts, services, files, terminals, git, chat. Signs in as your mesh user.",
+      "description": "Phosphorus mesh skill: hosts, services, files, terminals, git, chat. Pairs with your mesh's connector.",
       "name": "phosphorus",
       "source": "./plugins/phosphorus"
     }

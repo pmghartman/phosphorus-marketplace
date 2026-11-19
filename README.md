@@ -1,8 +1,12 @@
 # Phosphorus plugin
 
-The Claude plugin for a Phosphorus mesh. Published from `plugin/` in the phosphorus repository on each release; edits here are replaced.
+The Claude skill for a Phosphorus mesh. Published from `plugin/` in the phosphorus repository on each release; edits here are replaced.
 
-- Claude Code: `/plugin marketplace add https://github.com/pmghartman/phosphorus-plugin`, then `/plugin install phosphorus@phosphorus` and enter your mesh's domain when asked (`/plugin configure phosphorus@phosphorus` changes it). Turn on auto-update for the marketplace under `/plugin`, Marketplaces.
-- claude.ai, Claude Desktop or Cowork: Customize, Plugins, Add marketplace: `https://github.com/pmghartman/phosphorus-plugin`. These apps don't ask for the domain, so also add the connector under Customize, Connectors, Add custom connector, with the URL `https://<your mesh domain>/api/mcp`.
+1. Add the marketplace and install the plugin:
+   - Claude Code: `/plugin marketplace add https://github.com/pmghartman/phosphorus-plugin`, then `/plugin install phosphorus@phosphorus`. Turn on auto-update for the marketplace under `/plugin`, Marketplaces.
+   - claude.ai, Claude Desktop or Cowork: Customize, Plugins, Add marketplace: `https://github.com/pmghartman/phosphorus-plugin`, then install Phosphorus.
+2. Add your mesh's connector, `https://<your mesh domain>/api/mcp` (your mesh desktop's Agents app, Setup, shows it):
+   - Claude Code: `claude mcp add --transport http --scope user phosphorus https://<your mesh domain>/api/mcp`
+   - claude.ai, Claude Desktop or Cowork: Customize, Connectors, Add custom connector.
 
 The connector signs in with your mesh user and password. What it may do follows your role.

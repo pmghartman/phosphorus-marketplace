@@ -1,0 +1,13 @@
+{
+  "name": "phosphorus",
+  "owner": {
+    "name": "Phosphorus"
+  },
+  "plugins": [
+    {
+      "description": "Phosphorus mesh: hosts, services, files, terminals, git, chat. Signs in as your mesh user.",
+      "name": "phosphorus",
+      "source": "./plugins/phosphorus"
+    }
+  ]
+}

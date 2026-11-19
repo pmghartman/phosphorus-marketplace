@@ -1,6 +1,6 @@
 # Fix a repository's issues, release, install
 
-The user asks to fix a repository's issues ("fix the issues on phosphorus", "clear the board"). That request is their yes to every step below: merges, branch deletes, releases and re-runs, and the mesh update. Ask no further question for them. Ask only for what the request leaves open: which repository, if it's unclear, or a decision an issue itself needs. Read `git.md` first; its rules on branches, commit identity and pushing all hold.
+The user asks to fix a repository's issues ("fix the issues on phosphorus", "clear the board"). Merges, branch deletes and releases never need a question (`git.md`); this request is also their yes to the mesh update. Ask no question for any step. Ask only for what the request leaves open: which repository, if it's unclear, or a decision an issue itself needs. Read `git.md` first; its rules on branches, commit identity and pushing all hold.
 
 Every call is the `git` tool under `/repos/{owner}/{repo}` unless named otherwise. Keep a running list of issue, branch, pull request and state; report from it at the end.
 

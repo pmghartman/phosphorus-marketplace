@@ -1,6 +1,6 @@
 ---
 name: phosphorus
-description: "Operates the user's live, self-hosted Phosphorus mesh through the Phosphorus connector's tools. Use whenever the user names phosphorus or the mesh, one of its hosts, or asks about their own servers, homelab or tailnet, even without saying \"phosphorus\": a host up, down, slow or full; services or game servers on the mesh; installing, moving or removing a self-hosted service or app; files in mesh shares; running a command on a host; host logs; the mesh's git; the mesh chat; its models and agents; a mesh update. Not for editing or building the phosphorus source code itself."
+description: "Operates the user's live, self-hosted Phosphorus mesh through the Phosphorus connector's tools. Use whenever the user names phosphorus or the mesh, one of its hosts, or asks about their own servers, homelab or tailnet, even without saying \"phosphorus\": a host up, down, slow or full; services or game servers on the mesh; installing, moving or removing a self-hosted service or app; files in mesh shares; running a command on a host; host logs; the mesh's git; fixing a mesh repository's issues through to a release and a mesh update; the mesh chat; its models and agents; a mesh update. Not for editing or building the phosphorus source code itself, apart from that issue run."
 ---
 
 # Phosphorus
@@ -26,6 +26,7 @@ Read the one that fits before the first call; a one-tool question needs none.
 | update the mesh, follow, retry or cancel an update | `references/update.md` |
 | read or post chat, message someone, wait for a reply (the Chat app) | `references/chat.md` |
 | git repos, issues, the issues board, PRs, clone or push; set up a repo in a cloud session with none; commit or push in a checkout whose origin is the mesh git | `references/git.md` |
+| fix a repository's issues end to end: fix, move on the board, merge, prune branches, release until it builds, update the mesh and watch it | `references/issues.md` (and `git.md`) |
 
 ## Rules
 

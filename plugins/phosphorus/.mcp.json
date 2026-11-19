@@ -2,7 +2,7 @@
   "mcpServers": {
     "phosphorus": {
       "type": "http",
-      "url": "https://philab.io/api/mcp"
+      "url": "https://${user_config.domain}/api/mcp"
     }
   }
 }

@@ -5,11 +5,11 @@ description: "Operates the user's live, self-hosted Phosphorus mesh through the 
 
 # Phosphorus
 
-This copy is shared by every user of the mesh. The connector signs in as the user and withholds what their role can't do; its instructions name what is withheld. Don't offer withheld actions; say an admin can do them.
-
 Phosphorus is a mesh of the user's own machines on one tailnet. Each machine running it is a **host**. A host can share folders, publish web services and game servers, run terminals, write logs, and run installed services (such as Immich) or a model. The Phosphorus connector covers the whole mesh from any host. Every call runs as the signed-in user with that user's rights; the connector's instructions list them, including admin status. Tool names may have a prefix (`mcp__phosphorus__`, `Phosphorus:`). Each tool's description is its full reference; this skill only covers how to combine tools.
 
-If there are no Phosphorus tools, or the connector needs authentication, tell the user to add the mesh's plugin marketplace, `https://git.philab.io/internal/phosphorus-plugin.git` (the Agents app, Setup, on their mesh desktop shows it and walks through it): in Claude Code `/plugin marketplace add <url>` then `/plugin install phosphorus@phosphorus`, with auto-update on for it under `/plugin`, Marketplaces; in claude.ai, Claude Desktop or Cowork, Customize, Plugins, Add marketplace. It keeps itself up to date, and the connector signs in with their mesh user name and password. Then stop. The connector's instructions list what this sign-in can do: admin or not, saved host logins, and withheld tools. Don't offer withheld actions; say who can do them.
+This copy is shared by every user of the mesh. The connector signs in as the user and withholds what their role can't do; its instructions name what is withheld. Don't offer withheld actions; say an admin can do them.
+
+If there are no Phosphorus tools, or the connector needs authentication, tell the user to add the plugin marketplace `https://github.com/pmghartman/phosphorus-plugin` (the Agents app, Setup, on their mesh desktop walks through it): in Claude Code `/plugin marketplace add <url>` then `/plugin install phosphorus@phosphorus`, enter their mesh domain when asked (`/plugin configure phosphorus@phosphorus` changes it), and turn auto-update on for it under `/plugin`, Marketplaces; in claude.ai, Claude Desktop or Cowork, Customize, Plugins, Add marketplace, then add the connector by hand under Customize, Connectors, Add custom connector, with the URL `https://<their mesh domain>/api/mcp`. It keeps itself up to date, and the connector signs in with their mesh user name and password. Then stop. The connector's instructions list what this sign-in can do: admin or not, saved host logins, and withheld tools. Don't offer withheld actions; say who can do them.
 
 ## Job files
 
@@ -56,4 +56,4 @@ Failed calls return `code: message`.
 
 Lead with the answer. Use the exact host, service and path names phosphorus uses. For a change: what, where, before and after, how to undo. For a diagnosis: evidence lines verbatim, the cause, and the fix applied or proposed.
 
-The mesh is at https://philab.io.
+The connector's instructions name the mesh's address.

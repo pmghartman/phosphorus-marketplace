@@ -5,7 +5,7 @@ Find the cause of a broken, slow, full or unresponsive host, service or game ser
 1. Resolve the target from `mesh_hosts` and `services`, in parallel. Ask only if it stays ambiguous.
 2. Gather in parallel, as they apply:
    - host slow or full: `host_stats` on it (cpu, memory, disk with percents, parts, top processes, and `usage`: its phosphorus folder by state, cache and data folder, app and stack), `host_logs` `level: warn` `since: 2h`
-   - host not answering: `mesh_hosts` `health: true` (answering? its tunnel up?), then `host_logs` `source: net` `since: 2h` on it and on the control host (the hub)
+   - host not answering or links slow: `mesh_hosts` `health: true` (answering? `netMs` against `opMs`: a high `opMs` with a low `netMs` is the host, not the network; its `tunnel` lists each peer's `path`: `direct`, `relay`, `hub` or `down`), then `host_logs` `source: net` `since: 2h` on it and on the control host (the hub): path and endpoint changes are logged there
    - service: `services` `host` `name`, `host_config` (its entry in `services`), `host_logs` `match: <name>` `since: 2h`
    - game (the Games app installed): `games`, `game_log`
    - mesh tunnel down or waiting: `host_logs` `source: net` `since: 2h` shows the cause (hub response, tunnel device). A host whose UDP can't reach the hub on port 41641 falls back to the https relay at the mesh's domain. On Windows the tunnel driver, wintun, is downloaded into `state/cache/tools`; a `couldn't fetch` error clears with `host_power` `restart` once the host can reach wintun.net

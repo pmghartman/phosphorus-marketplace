@@ -14,18 +14,18 @@ Every call is the `git` tool under `/repos/{owner}/{repo}` unless named otherwis
 
 No pull requests: a fix merges straight into the default branch, and its commit's `Closes #{n}` closes the issue and moves it to Done when the default branch is pushed. Done issues go to the archive a day after they close.
 
-For each issue in turn, from an up-to-date default branch (`git fetch origin && git checkout -B <default> origin/<default>`):
+The run works on one branch for the whole session, a commit per issue. Before the first issue, make it off an up-to-date default branch (`git fetch origin && git checkout -B <default> origin/<default> && git checkout -b <kind>/<topic>`), named for the run as a whole (`fix/mesh-security-hardening`, `fix/git-board-issues`), never for one issue. Then, for each issue in turn:
 
-1. Move it to In progress: `POST /issues/{n}/board` `{ "column": "doing" }`, so the board shows what is being worked on. Branch `fix/<topic>` (or `feat/`, `docs/`... for what the issue is), one branch per issue. Make the fix, with a test only where the repository's rules ask for one.
-2. Run the repository's own checks for what changed. They must pass before a merge. Can't make them pass: comment on the issue with what was tried and the failing output, move it back to To do (`{ "column": "todo" }`), drop the branch, go on.
-3. Commit with a message whose body ends `Closes #{n}`.
-4. Merge it: `git fetch origin && git checkout -B <default> origin/<default> && git merge --no-ff <branch> && git push origin <default>`, then `git branch -D <branch>` (and `git push origin --delete <branch>` if it was pushed). A push refused as not fast-forward: fetch, merge the default branch again, re-run the checks, push again; never force. A merge conflict: resolve it on the branch, re-run the checks, merge again.
+1. Move it to In progress: `POST /issues/{n}/board` `{ "column": "doing" }`, so the board shows what is being worked on. Make the fix on the session's branch, with a test only where the repository's rules ask for one.
+2. Run the repository's own checks for what changed. They must pass before a merge. Can't make them pass: comment on the issue with what was tried and the failing output, move it back to To do (`{ "column": "todo" }`), drop its uncommitted change (`git restore --staged --worktree <files>`, and remove files it added), go on.
+3. Commit, one commit for the issue, with a message whose body ends `Closes #{n}`.
+4. Merge it: `git fetch origin && git checkout -B <default> origin/<default> && git merge --no-ff <branch> && git push origin <default>`, then back on the branch: `git checkout <branch> && git merge --ff-only <default>`. A push refused as not fast-forward: fetch, merge the default branch again, re-run the checks, push again; never force. A merge conflict: resolve it on the branch, re-run the checks, merge again.
 
 Issues that touch the same files go one after another.
 
 ## 3. Delete stale branches
 
-Once the issues are done: `GET /branches`. Delete each branch with `merged: true` (its tip is already in the default branch): `DELETE /branches/{name}`. The default branch is never `merged`. Leave every branch with `merged: false`, which still holds unmerged work, and list them in the report with their last commit.
+Once the issues are done, delete the session's branch (`git checkout <default> && git branch -D <branch>`, and `git push origin --delete <branch>` if it was pushed). Then `GET /branches`. Delete each branch with `merged: true` (its tip is already in the default branch): `DELETE /branches/{name}`. The default branch is never `merged`. Leave every branch with `merged: false`, which still holds unmerged work, and list them in the report with their last commit.
 
 ## 4. Release
 

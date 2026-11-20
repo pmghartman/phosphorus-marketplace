@@ -1,14 +1,15 @@
 # Fix a repository's issues, release, install
 
-The user asks to fix a repository's issues ("fix the issues on phosphorus", "clear the board"). Pull requests, merges, branch deletes, releases and the mesh update never need a question. Ask no question for any step. Ask only for what the request leaves open: which repository, if it's unclear, or a decision an issue itself needs. Read `git.md` first; its rules on branches, commit identity and pushing all hold.
+The user asks to fix a repository's issues ("fix the issues on phosphorus", "clear the board"), or reports problems or asks for changes in a repository's code ("git master is wrong", "widgets don't sync"). For a report, the run's work is the user's points, each filed first (step 1.1), not the whole board. Pull requests, merges, branch deletes, releases and the mesh update never need a question. Ask no question for any step. Ask only for what the request leaves open: which repository, if it's unclear, or a decision an issue itself needs. Read `git.md` first; its rules on branches, commit identity and pushing all hold.
 
 Every call is the `git` tool under `/repos/{owner}/{repo}` unless named otherwise. Keep a running list of each pull request (number, branch, issues, merge commit) and each issue's state; report from it at the end.
 
 ## 1. Pick the work
 
-1. `GET /board` once and `GET /` (the repository: `default_branch`) in parallel. The board is read once a run; after that, the only board calls are moving each issue to In progress as you start it, and back to To do if it is dropped. The work is every open issue in `doing` (In progress) and `todo` (To do), In progress first, then oldest first. Skip an issue assigned to someone other than the user, and say so.
-2. Set up the working copy once: `git_clone` where there is none, with `branch` the first group's branch (step 2), else the checkout already here. Read the repository's `CLAUDE.md` or README for its check commands.
-3. Read each issue (`GET /issues/{n}` and `/issues/{n}/comments`) before starting it. An issue whose `linked_pulls` holds an open pull request this run didn't open is someone's work in hand: skip it and say so. An issue that needs a decision only the user can make (a design choice, a secret, missing facts): post the question as a comment (`POST /issues/{n}/comments`), leave it in To do, and go on to the next one.
+1. The user's points: before any fix, file each problem or change the user raised as its own issue, following `git.md` step 8 (search open issues first and comment on a match instead; a short plain title, the user's point and the evidence in a plain body, its subdomain, To do). Points raised later in the conversation are filed the same way when they come. These issues are the run's work, alongside any the user asked for from the board.
+2. `GET /board` once and `GET /` (the repository: `default_branch`) in parallel. The board is read once a run; after that, the only board calls are moving each issue to In progress as you start it, and back to To do if it is dropped. The work is every open issue in `doing` (In progress) and `todo` (To do), In progress first, then oldest first. Skip an issue assigned to someone other than the user, and say so.
+3. Set up the working copy once: `git_clone` where there is none, with `branch` the first group's branch (step 2), else the checkout already here. Read the repository's `CLAUDE.md` or README for its check commands.
+4. Read each issue (`GET /issues/{n}` and `/issues/{n}/comments`) before starting it. An issue whose `linked_pulls` holds an open pull request this run didn't open is someone's work in hand: skip it and say so. An issue that needs a decision only the user can make (a design choice, a secret, missing facts): post the question as a comment (`POST /issues/{n}/comments`), leave it in To do, and go on to the next one.
 
 ## 2. Fix each issue on its pull request's branch
 

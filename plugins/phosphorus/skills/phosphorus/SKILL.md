@@ -27,6 +27,7 @@ Read the one that fits before the first call; a one-tool question needs none.
 | read or post chat, message someone, wait for a reply (the Chat app) | `references/chat.md` |
 | git repos, issues, the issues board, PRs, clone or push; set up a repo in a cloud session with none; commit or push in a checkout whose origin is the mesh git | `references/git.md` |
 | fix a repository's issues end to end: fix, move on the board, open and merge pull requests, prune branches, release until it builds, update the mesh and health-check it | `references/issues.md` (and `git.md`) |
+| the user reports problems or asks for changes in a mesh repository's code (something broken, slow or missing in phosphorus or another repo there) | `references/issues.md` (and `git.md`): file each point first |
 
 ## Rules
 
@@ -36,6 +37,7 @@ Read the one that fits before the first call; a one-tool question needs none.
 - **Read before writing.** `host_config` before `config_set` or `service_edit`; read the passage before `files_write` with old/new; `update_status` before `update_control`.
 - **Act without asking.** The sign-in's grants scope what it may do, so a change the user asked for needs no confirmation step: `forbidden` is the only no. Use `dry_run` first where it exists to check what will change. `host_power` takes `confirm` equal to the host name.
 - **No secrets.** Never ask for, accept or type a password, key or token. `terminal_run` uses the user's saved logins; report a missing login instead of asking for one.
+- **File what the user reports.** Each problem or change the user raises about a mesh repository's code is filed as its own issue before any work on it, after a duplicate check (`git.md` step 8): a short plain title, the user's point and the evidence found in the body, its subdomain, in To do; a match gets a comment instead. Move each to In progress just before its first change, then fix it through the `issues.md` flow. Name the issues filed in the report.
 - **File what you find.** A problem found while working (a bug, a security gap, broken docs, a failing check) that the work in hand doesn't fix is filed as an issue without asking, after a duplicate check (`git.md` step 8), and named in the report.
 - **Writes are audited** in `audit_log`. Report what changed, where, and how to undo it.
 

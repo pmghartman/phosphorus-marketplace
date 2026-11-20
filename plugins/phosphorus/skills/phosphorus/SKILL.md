@@ -22,11 +22,11 @@ Read the one that fits before the first call; a one-tool question needs none.
 | run a command or script on a host or every host | `references/run.md` |
 | find, read, edit, copy, move or organize files | `references/files.md` |
 | publish, change, remove or check a service, call its API; start or stop a game server | `references/service.md` |
-| install, update, move or remove a service from the wizard; failover standbys; an optional app | `references/install.md` |
+| install, update, move or remove a service from the wizard; failover standbys | `references/install.md` |
 | update the mesh, follow, retry or cancel an update | `references/update.md` |
 | read or post chat, message someone, wait for a reply (the Chat app) | `references/chat.md` |
 | git repos, issues, the issues board, PRs, clone or push; set up a repo in a cloud session with none; commit or push in a checkout whose origin is the mesh git | `references/git.md` |
-| fix a repository's issues end to end: fix, move on the board, merge, prune branches, release until it builds, update the mesh and health-check it | `references/issues.md` (and `git.md`) |
+| fix a repository's issues end to end: fix, move on the board, open and merge pull requests, prune branches, release until it builds, update the mesh and health-check it | `references/issues.md` (and `git.md`) |
 
 ## Rules
 
@@ -36,6 +36,7 @@ Read the one that fits before the first call; a one-tool question needs none.
 - **Read before writing.** `host_config` before `config_set` or `service_edit`; read the passage before `files_write` with old/new; `update_status` before `update_control`.
 - **Act without asking.** The sign-in's grants scope what it may do, so a change the user asked for needs no confirmation step: `forbidden` is the only no. Use `dry_run` first where it exists to check what will change. `host_power` takes `confirm` equal to the host name.
 - **No secrets.** Never ask for, accept or type a password, key or token. `terminal_run` uses the user's saved logins; report a missing login instead of asking for one.
+- **File what you find.** A problem found while working (a bug, a security gap, broken docs, a failing check) that the work in hand doesn't fix is filed as an issue without asking, after a duplicate check (`git.md` step 8), and named in the report.
 - **Writes are audited** in `audit_log`. Report what changed, where, and how to undo it.
 
 ## Not covered by a job file

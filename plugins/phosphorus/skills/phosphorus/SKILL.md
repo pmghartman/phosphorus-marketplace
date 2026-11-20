@@ -34,7 +34,7 @@ Read the one that fits before the first call; a one-tool question needs none.
 - **Use real host names.** Get them from `mesh_hosts` once per session; never guess or shorten them. A device with `phosphorus: false` can't be managed; say so.
 - **Batch and keep calls narrow.** Load the tools a job needs in one tool search and run independent reads in one parallel batch. Prefer the cheap call: `host_stats` with no host before one host, `files_list` `stat: true` before `files_read`, `files_search` over walking `files_list`, a `services` check over curl in `terminal_run`, `host_logs` filtered by `level`, `match`, `since`.
 - **Read before writing.** `host_config` before `config_set` or `service_edit`; read the passage before `files_write` with old/new; `update_status` before `update_control`.
-- **Changes need the user's approval for that target.** `host_power`, `files_change` delete, `files_copy` move, `config_set`, `service_edit`, `update_control`, `stack_control`, `app_control`, `game_power` (the Games app's), and any `terminal_run` that changes a machine. Use `dry_run` first where it exists and show the diff. `host_power` takes `confirm` equal to the host name.
+- **Act without asking.** The sign-in's grants scope what it may do, so a change the user asked for needs no confirmation step: `forbidden` is the only no. Use `dry_run` first where it exists to check what will change. `host_power` takes `confirm` equal to the host name.
 - **No secrets.** Never ask for, accept or type a password, key or token. `terminal_run` uses the user's saved logins; report a missing login instead of asking for one.
 - **Writes are audited** in `audit_log`. Report what changed, where, and how to undo it.
 

@@ -6,18 +6,18 @@ Every call is the `git` tool under `/repos/{owner}/{repo}` unless named otherwis
 
 ## 1. Pick the work
 
-1. `GET /board` once and `GET /` (the repository: `default_branch`) in parallel. The board is read once a run: issues close themselves from commit messages, so nothing on it needs moving. The work is every open issue in `doing` (In progress) and `todo` (To do), In progress first, then oldest first. Skip an issue assigned to someone other than the user, and say so.
+1. `GET /board` once and `GET /` (the repository: `default_branch`) in parallel. The board is read once a run; the only board call after that is moving each issue to In progress as you start it. The work is every open issue in `doing` (In progress) and `todo` (To do), In progress first, then oldest first. Skip an issue assigned to someone other than the user, and say so.
 2. Set up the working copy once: `git_clone` where there is none, else the checkout already here. Read the repository's `CLAUDE.md` or README for its check commands.
 3. Read each issue (`GET /issues/{n}` and `/issues/{n}/comments`) before starting it. An issue that needs a decision only the user can make (a design choice, a secret, missing facts): post the question as a comment (`POST /issues/{n}/comments`), leave it in To do, and go on to the next one.
 
 ## 2. Fix each issue
 
-No pull requests and no board calls: a fix merges straight into the default branch, and its commit's `Closes #{n}` closes the issue and moves it to Done when the default branch is pushed.
+No pull requests: a fix merges straight into the default branch, and its commit's `Closes #{n}` closes the issue and moves it to Done when the default branch is pushed. Done issues go to the archive a day after they close.
 
 For each issue in turn, from an up-to-date default branch (`git fetch origin && git checkout -B <default> origin/<default>`):
 
-1. Branch `fix/<topic>` (or `feat/`, `docs/`... for what the issue is), one branch per issue. Make the fix, with a test only where the repository's rules ask for one.
-2. Run the repository's own checks for what changed. They must pass before a merge. Can't make them pass: comment on the issue with what was tried and the failing output, drop the branch, go on.
+1. Move it to In progress: `POST /issues/{n}/board` `{ "column": "doing" }`, so the board shows what is being worked on. Branch `fix/<topic>` (or `feat/`, `docs/`... for what the issue is), one branch per issue. Make the fix, with a test only where the repository's rules ask for one.
+2. Run the repository's own checks for what changed. They must pass before a merge. Can't make them pass: comment on the issue with what was tried and the failing output, move it back to To do (`{ "column": "todo" }`), drop the branch, go on.
 3. Commit with a message whose body ends `Closes #{n}`.
 4. Merge it: `git fetch origin && git checkout -B <default> origin/<default> && git merge --no-ff <branch> && git push origin <default>`, then `git branch -D <branch>` (and `git push origin --delete <branch>` if it was pushed). A push refused as not fast-forward: fetch, merge the default branch again, re-run the checks, push again; never force. A merge conflict: resolve it on the branch, re-run the checks, merge again.
 
@@ -32,7 +32,7 @@ Once the issues are done: `GET /branches`. Delete each branch with `merged: true
 Only when something merged in this run. Find the release workflow: a file under `.phosphorus/workflows/` (or `.github/workflows/`) with `on: workflow_dispatch` (`release.yml` in phosphorus). None: say so and stop after step 3.
 
 1. `POST /actions/workflows/{file}/dispatches` `{ "ref": "<default>" }`, inputs left at their defaults. It returns the run's `id`.
-2. Follow it every minute or two with `GET /actions/runs` (`workflow_runs`, newest first; that `id`'s `status`) until it is `success`, `failure` or `cancelled`. `queued` for over ten minutes means no runner matches its `runs-on`: report that.
+2. Follow it every minute or two with `GET /actions/runs/{id}` (its `status`) until it is `success`, `failure` or `cancelled`. `queued` for over ten minutes means no runner matches its `runs-on`: report that.
 3. `failure`: `GET /actions/runs/{id}/logs` for each job's status and log, and read the failing step.
    - Fails for the code: fix it as in step 2 (no issue needed), dispatch again.
    - Fails outside the code (a runner or host down, git between leaders, a network blip, a run stuck queued with no runner for its `runs-on`): dispatch again unchanged.

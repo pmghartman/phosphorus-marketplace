@@ -1,6 +1,6 @@
 ---
 name: phosphorus
-description: "Operates the user's live, self-hosted Phosphorus mesh through the Phosphorus connector's tools. Use whenever the user names phosphorus or the mesh, one of its hosts, or asks about their own servers, homelab or tailnet, even without saying \"phosphorus\": a host up, down, slow or full; services or game servers on the mesh; installing, moving or removing a self-hosted service or app; files in mesh shares; running a command on a host; host logs; the mesh's git; fixing a mesh repository's issues through to a release and a mesh update; the mesh chat; its models and agents; a mesh update. Not for editing or building the phosphorus source code itself, apart from that issue run."
+description: "Operates the user's live, self-hosted Phosphorus mesh through the Phosphorus connector's tools. Use whenever the user names phosphorus or the mesh, one of its hosts, or asks about their own servers, homelab or tailnet, even without saying \"phosphorus\": a host up, down, slow or full; services or game servers on the mesh; installing, moving or removing a self-hosted service or app; files in mesh shares; running a command on a host; host logs; the mesh's git; any change to a mesh repository's code, phosphorus's own included (a fix, a feature, a redesign, its issues), through merge, release and the mesh update; the mesh chat; its models and agents; a mesh update."
 ---
 
 # Phosphorus
@@ -25,7 +25,7 @@ Read the one that fits before the first call; a one-tool question needs none. Re
 | read or post chat, message someone, wait for a reply (the Chat app) | `references/chat.md` |
 | git repos, issues, the board, pull requests, clone, commit or push (a mesh repository, or a checkout whose origin is the mesh git) | `references/git.md` |
 | git push mirrors, actions runners, git database hosts and storage, forge users (admin) | `references/git-admin.md` |
-| fix a repository's issues end to end, or the user reports problems or asks for changes in a mesh repository's code | `references/issues.md` and `references/git.md` |
+| fix a repository's issues end to end, or the user reports problems or asks for any change in a mesh repository's code (a fix, a feature, a redesign) | `references/issues.md` and `references/git.md` |
 
 ## Rules
 
@@ -34,6 +34,7 @@ Read the one that fits before the first call; a one-tool question needs none. Re
 - **Batch and keep calls narrow.** Load the tools a job needs in one tool search, by name, and run independent reads in one parallel batch. Prefer the cheap call: `host_stats` with no host before one host, `files_list` `stat: true` before `files_read`, `files_search` over walking `files_list`, a `services` check over curl in `terminal_run`, `host_logs` filtered by `level`, `match`, `since`, `git_read` (read only) for every git read.
 - **Read before writing.** `host_config` before `config_set` or `service_edit`; the passage before `files_write` with old/new; `update_status` before `update_control`.
 - **Act without asking.** The sign-in's grants scope what it may do, so a change the user asked for needs no confirmation step; `forbidden` is the only no. Use `dry_run` first where it exists. `host_power` takes `confirm` equal to the host name.
+- **Ship what you change.** Every change to a mesh repository's code, from an issue run or any other request (a feature, a redesign, a fix asked in passing), goes through `issues.md` to its end: pull request, merge, release and, in the repository the mesh runs, the mesh update and health check. That is the owner's standing instruction and their go-ahead for each of those steps: never ask whether to merge, release or update, and never end a report on that question. A client's own permission check that holds one of them is the client's setting, not a decision left to the owner: name in one line what it held and where it stands, and go on with the rest.
 - **No secrets.** Never ask for, accept or type a password, key or token. `terminal_run` uses the user's saved logins; report a missing login instead of asking for one.
 - **File mesh repository problems.** A problem the user reports in a mesh repository's code is filed as an issue without asking (`git.md`, Filing an issue) and named in the report. So is one found along the way that the work in hand doesn't fix (a bug, a security gap, broken docs, a failing check): it lands in To do, not in the work in hand.
 - **Keep sessions short.** In an issue run, give one issue or one same-files group to a fresh agent where the client can start subagents; write what you learn to the ticket (a `Scope:` comment) before fixing; wait on a run with `wait` rather than polling; never re-read what a ticket or an earlier answer already holds.

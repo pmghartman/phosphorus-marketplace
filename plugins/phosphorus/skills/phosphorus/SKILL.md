@@ -35,7 +35,7 @@ Read the one that fits before the first call; a one-tool question needs none. Re
 - **Read before writing.** `host_config` before `config_set` or `service_edit`; the passage before `files_write` with old/new; `update_status` before `update_control`.
 - **Act without asking.** The sign-in's grants scope what it may do, so a change the user asked for needs no confirmation step; `forbidden` is the only no. Use `dry_run` first where it exists. `host_power` takes `confirm` equal to the host name.
 - **No secrets.** Never ask for, accept or type a password, key or token. `terminal_run` uses the user's saved logins; report a missing login instead of asking for one.
-- **File mesh repository problems.** A problem the user reports in a mesh repository's code is filed as an issue without asking (`git.md`, Filing an issue) and named in the report. So is one found along the way that the work in hand doesn't fix (a bug, a security gap, broken docs, a failing check), into the board's Found column (`found_in`), not into the user's work.
+- **File mesh repository problems.** A problem the user reports in a mesh repository's code is filed as an issue without asking (`git.md`, Filing an issue) and named in the report. So is one found along the way that the work in hand doesn't fix (a bug, a security gap, broken docs, a failing check): it lands in To do, not in the work in hand.
 - **Keep sessions short.** In an issue run, give one issue or one same-files group to a fresh agent where the client can start subagents; write what you learn to the ticket (a `Scope:` comment) before fixing; wait on a run with `wait` rather than polling; never re-read what a ticket or an earlier answer already holds.
 - **Writes are audited** in `audit_log`. Report what changed, where, and how to undo it.
 
@@ -44,7 +44,7 @@ Read the one that fits before the first call; a one-tool question needs none. Re
 - Models: `models` shows which mesh host's model each agent (tavern while Tavern is installed) is assigned and answering with; `set_agent_model` assigns one (admin).
 - The user's Phosphorus window: `open_file` opens a share's file in an editor tab, `open_terminal` a shared terminal tab.
 - Agent jobs (`ws_*`, `job_*`, `artifact_*`, `recipe_*`): `agents_hosts` describes them. `job_run` with `repo` and `ref` runs a command in a fresh checkout of a pushed ref of a mesh repository; wait on a job with `job_list` `job` and `wait`.
-- What agents did on the mesh: `agent_sessions` (each session's calls and errors; with `session`, its events, each issue's steps and its cost by tool); `agent_holds` (the calls a tool rule held for a person, and their state).
+- What agents did on the mesh: `agent_sessions` (each session's calls and errors; with `session`, its events, each issue's steps and its cost by tool)).
 
 ## Errors
 
@@ -54,7 +54,7 @@ Failed calls return `code: message`.
 - `not_found`: re-list (`mesh_hosts`, `services`, `files_list`, `people`) instead of guessing.
 - `forbidden`: final for this key. It lacks the right (share perm, admin, saved login, or a connector scope: `<tool> needs <scope>, not in this connector's scopes`), or a person denied the call (`denied by <who>`). Say what is missing in the report and stop; never work around it with another tool, path or sign-in.
 - `unreachable`: the host is down or off the tailnet; check `mesh_hosts` `health: true`, and `host_logs` on another host.
-- `conflict`: the message says what has to happen first; do that, don't retry blindly. `awaiting approval (hold <id>)`: a tool rule holds the call until a person approves it in the Agents app (Needs you). Go on with other work and make the same call again later (`agent_holds` shows its state; an approval runs it once, within 30 minutes); never rephrase the call to dodge the rule.
+- `conflict`: the message says what has to happen first; do that, don't retry blindly.
 - `key refused` (HTTP 401): the sign-in was revoked (Agents app, Access, Connectors) or invalidated by a password change. The user signs in again from the connector.
 
 ## Reporting

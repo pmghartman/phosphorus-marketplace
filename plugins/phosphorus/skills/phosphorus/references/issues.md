@@ -35,7 +35,7 @@ For each issue in the group:
 
 Checks belong to the mesh, not to where the agent runs. Before the pull request, run them on the pushed branch: `job_run` `{ "repo": "<owner>/<repo>", "ref": "<branch>", "command": "<the checks>" }` (`host` or `labels` to choose the host; needs `git:code`), then `job_list` `{ "job", "wait": 50, "status": "<last seen>" }` until `success`, `failure`, `cancelled` or `lost`. `failure`: read `job_log`, fix in a new commit, push, run again. The job runs in a fresh checkout that is removed when it ends; `PHOS_REPO_KEEP` outlives it and holds `CARGO_TARGET_DIR` unless `env` sets one, so builds stay warm. No `job_run` on this key (a Fix issues run already works on a mesh host): run them in the checkout.
 
-The repository has a pull request workflow (a file under `.phosphorus/workflows/` or `.github/workflows/` with `on: pull_request`; `check.yml` in phosphorus): run only the quick checks for what changed (the touched crate's or page's lint and tests); the workflow runs the whole set by itself on the mesh's runners once the pull request is open. It has none: run the whole set from the repository's rules.
+The repository has a pull request workflow (a file under `.phosphorus/workflows/` or `.github/workflows/` with `on: pull_request`; phosphorus has none): run only the quick checks for what changed (the touched crate's or page's lint and tests); the workflow runs the whole set by itself on the mesh's runners once the pull request is open. It has none: run the whole set from the repository's rules.
 
 Dropping an issue (checks you can't make pass, out of time, a fix too risky to merge unasked): comment why on it (what was tried, the failing output), move it back with `{ "column": "todo" }`, drop its change (`git restore --staged --worktree <files>`, and remove files it added; a pushed commit: `git revert` it and push), go on. A problem outside the issue in hand is filed as an issue of its own (`git.md`, Filing an issue), not fixed in that commit, and not taken up in this run.
 
@@ -43,7 +43,7 @@ When the group's issues are done, open its pull request: `git` `POST {r}/pulls` 
 
 ## 4. Checks and review
 
-1. For each pull request, all in parallel, `git_read` `{r}/pulls/{n}`: `checks` lists the runs on its head commit (`id`, `name`, `status`), started by the forge when it opened. Wait on each with `git_read` `{r}/actions/runs/{id}?wait=50&status=<last seen>` until `success`, `failure` or `cancelled`; never poll faster. No `checks` two minutes after opening: the workflow's paths do not cover the change; go on.
+1. For each pull request, all in parallel, `git_read` `{r}/pulls/{n}`: `checks` lists the runs on its head commit (`id`, `name`, `status`), started by the forge when it opened. Wait on each with `git_read` `{r}/actions/runs/{id}?wait=50&status=<last seen>` until `success`, `failure` or `cancelled`; never poll faster. No `checks` two minutes after opening (no pull request workflow, or its paths do not cover the change): the checks you ran before opening are the gate; go on.
    - `failure`: `git_read` `{r}/actions/runs/{id}/logs?failed=1`, fix on the branch, quick checks, push; the new commit starts a new run. The same failure three runs in a row: leave the pull request open and report it with the log lines.
    - A run whose other jobs passed and whose one job has been queued over ten minutes has no runner up for it (a laptop asleep): cancel the run (`git` `POST {r}/actions/runs/{id}/cancel`) and say so in the report.
 2. Review only a broad change (several parts at once), or a change to access control, stored formats or a protocol. Where the repository has a reviewer role (`.claude/agents/verifier.md`, or one its rules file names) and the client can start subagents, the main session runs it on the pull request's diff as an agent that did not write the change, and posts its report as a comment on the pull request (`git` `POST {r}/issues/{n}/comments`). Fix what it ranks as must fix before merging; answer a finding you disagree with in a comment and leave it for the user.
@@ -56,7 +56,7 @@ Then `git fetch origin --prune && git checkout -B <default> origin/<default>`, r
 
 ## 6. Release train
 
-After the merges, `git_read` `{r}/releases/pending`: `merged` lists the issues whose merged pull requests are not yet in the release every host runs (closed already; always empty outside the repository the mesh runs), `run` the id of a release run already queued or running. Release now when the user asked for a release in this request (release, ship, deploy, update the mesh), a Fix issues run's prompt says to, or `merged` holds five or more issues. Otherwise report how many wait, and `run` if there is one, and stop. The release workflow is a file under `.phosphorus/workflows/` (or `.github/workflows/`) with `on: workflow_dispatch` (`release.yml` in phosphorus); none: say so and stop here.
+After the merges, `git_read` `{r}/releases/pending`: `merged` lists the issues whose merged pull requests are not yet in the release every host runs (closed already; always empty outside the repository the mesh runs), `run` the id of a release run already queued or running. Release whenever something merged in this run, or `merged` is not empty: no question, no batching; a run already queued or running (`run`) is followed instead of dispatching another. The release workflow is a file under `.phosphorus/workflows/` (or `.github/workflows/`) with `on: workflow_dispatch` (`release.yml` in phosphorus); none: say so and stop here.
 
 1. `git` `POST {r}/actions/workflows/{file}/dispatches` `{ "ref": "<default>" }`, inputs left at their defaults. It returns the run's `id`. With `"following": true` it is another session's run of the same workflow: follow that run and don't dispatch again.
 2. Wait on the run as in step 4 (`?wait=50&status=<last seen>`) until `success`, `failure` or `cancelled`. `queued` for over ten minutes: no runner matches its `runs-on`; report it.
@@ -68,7 +68,7 @@ After the merges, `git_read` `{r}/releases/pending`: `merged` lists the issues w
 
 ### Install on the mesh
 
-Only the repository the mesh runs; needs an admin key (the connector's instructions say), else report the release and stop. This job's release covers the mesh update; outside an issue run an update needs the user's yes.
+Only the repository the mesh runs; needs an admin key (the connector's instructions say), else report the release and stop. This job's release always goes on to the mesh update and the health check, with no question.
 
 1. In parallel: `update_status`, `mesh_hosts` `health: true`, `services` (the snapshot for the health check). An update already running: follow it to the end first; never start a second.
 2. `update_control` `fetch`, then `update_status` every 15 to 30 s until `fetch` shows the new version and every host has it `fetched`. Not there after five minutes: fetch once more, then report.

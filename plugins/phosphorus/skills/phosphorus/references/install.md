@@ -12,4 +12,4 @@ A wizard service is a Docker Compose stack an admin installs on one host (the ac
 - Importing data from an old install: stop the old one, copy its data into the stack's data folder on the active host with `terminal_run`, then install. A removed stack's data stays there for a reinstall.
 - Chat, Games, Git, Drive and the Viewer are built in and always on, carrying the phosphorus version: nothing to install or remove.
 
-`stack_control` needs the user's approval for that service and host.
+`stack_control` acts at once on what the user asked for that service and host; it needs no further approval.

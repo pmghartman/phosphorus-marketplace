@@ -6,7 +6,7 @@ A call the connector's scopes refuse (`forbidden`) is never worked around by ano
 
 Read `git.md` and `agents.md` with this file: git's API, board, filing and working-copy sections are the how, agents' the claims, notes and runner turns other agents rely on; this file is the order. Reads are `git_read`, writes `git`, paths under `{r}` = `/repos/{owner}/{repo}`. `<user>` is the user you act as (`git.md`, Who you act as).
 
-The repository the mesh runs is the one its update feed is read from: pmh/phosphorus unless the mesh was pointed elsewhere. Its release goes on to install on the mesh (step 6); other repositories end at step 6's release. In every repository commit and pull request bodies say `Closes #n`, and the merge closes each issue and moves it to Done.
+The repository the mesh runs is the one its update feed is read from: pmh/phosphorus unless the mesh was pointed elsewhere. Its release goes on to install on the mesh (step 6); other repositories end at step 6's release. In every repository commit and pull request bodies say `Closes #n`. Pull requests merge and release on a release train (`agents.md`, Release trains). Where the repository has a release workflow (`{r}`'s `release_workflow`), the merge leaves each issue In progress marked merged and it closes to Done once its release is verified on the mesh (step 7); elsewhere the merge closes it.
 
 Every change is an issue. Keep a running list of each pull request (number, branch, issues, merge commit) and each issue's state; report from it.
 
@@ -48,32 +48,36 @@ When the group's issues are done, open its pull request: `git` `POST {r}/pulls` 
    - A run whose other jobs passed and whose one job has been queued over ten minutes has no runner up for it (a laptop asleep): cancel the run (`git` `POST {r}/actions/runs/{id}/cancel`) and say so in the report.
 2. Review only a broad change (several parts at once), or a change to access control, stored formats or a protocol. Where the repository has a reviewer role (`.claude/agents/verifier.md`, or one its rules file names) and the client can start subagents, the main session runs it on the pull request's diff as an agent that did not write the change, and posts its report as a comment on the pull request (`git` `POST {r}/issues/{n}/comments`). Fix what it ranks as must fix before merging; answer a finding you disagree with in a comment and leave it for the user.
 
-## 5. Merge, then delete merged branches
+## 5. Board the train and merge at its turn
 
-Nothing merges until every group's pull request is open and through step 4. Then merge them one after another: `git` `POST {r}/pulls/{n}/merge` `{ "delete_branch_after_merge": true }`, noting each merge `sha`. Each issue its pull request names with `Closes #n` (or `Refs #n`) closes and moves to Done. The forge refuses a merge (409, naming the run) while a run on the head commit is queued, running or failed: step 4 clears it. One it refuses for a conflict (`conflicts in <files>`) or because the branch is behind (`the branch is behind <default>; merge it in and run the checks again`, as every pull request after the first merged will be): `git fetch origin && git checkout <branch> && git merge origin/<default>`, resolve, re-run the checks, `git push origin <branch>`, step 4, merge again. Never force push.
+Each pull request through step 4 boards its repository's release train at once: `work_ready` `{ "repo": "<owner>/<repo>", "pull": n }`. Don't wait for the run's other groups, nor for anyone else's work: a train takes what is ready and the next train takes what is ready later. Its checks still running: it boards pending and holds the train only until that run ends. A failed run is refused: step 4 first.
+
+Then wait on the train: `work_train` `{ "repo", "wait": 50, "phase": "<the last answer's phase>" }`, again after each answer, and do what its `next` says. With several pull requests on trains, wait on the repository's trains, not on each one. Every call moves the trains on; the first to board conducts (steps 6 and 7), and a live member takes over where it went quiet. A train stuck on something only a person can fix: say so in the report for a person admin to cancel it in the Agents app's Work page; your own pull request comes off a boarding train with `work_train` `cancel` and why. A train building with no release run, or installing, for over two hours ends by itself.
+
+At a pull request's turn (`your_state` `merging`): on its branch `git fetch origin && git merge origin/<default>`, resolve, `git push origin <branch>`; run the checks on that merged head (step 3's `job_run`, `job_list` `wait`); green: `git` `POST {r}/pulls/{n}/merge` `{ "delete_branch_after_merge": true }`, noting the merge `sha` (the train records it and passes the turn on). The forge refuses a branch behind the default branch, or a run on its head queued, running or failed (409, naming it): merge the default branch in again and rerun the checks. The checks on the merged head fail: `work_train` `{ "repo", "leave": true, "why": "<the failing check>" }`, fix it on the branch (step 3), step 4, and `work_ready` again for a later train. Never force push.
 
 Then `git fetch origin --prune && git checkout -B <default> origin/<default>`, remove the merged groups' worktrees (`git worktree remove ../wt/<topic>`) and delete the local branches whose pull requests merged (`git_clone`'s `finish` does the fetch and the branches). `git_read` `{r}/branches`: delete each with `merged: true` (`git` `DELETE {r}/branches/{name}`); list each `merged: false` one in the report with its last commit.
 
-## 6. Release train
+## 6. Release (the conductor)
 
-After the merges, `git_read` `{r}/releases/pending`: `merged` lists the issues whose merged pull requests are not yet in the release every host runs (closed already; always empty outside the repository the mesh runs), `run` the id of a release run already queued or running. Release whenever something merged in this run, or `merged` is not empty: no question, no batching; a run already queued or running (`run`) is followed instead of dispatching another. The release workflow is a file under `.phosphorus/workflows/` (or `.github/workflows/`) with `on: workflow_dispatch` (`release.yml` in phosphorus); none: say so and stop here.
+Once every member of the train merged or left, the train is `building`. Only its conductor (`work_train` `conductor: true`) releases; the others wait on the train. The release workflow is `{r}`'s `release_workflow` (`release.yml` in phosphorus); a repository without one ends its train at the merges: say so and stop here. No question and no batching beyond the train: it is the batch.
 
-1. `git` `POST {r}/actions/workflows/{file}/dispatches` `{ "ref": "<default>" }`, inputs left at their defaults. It returns the run's `id`. With `"following": true` it is another session's run of the same workflow: follow that run and don't dispatch again. A `conflict` names the run that holds the runners' turn (`agents.md`): wait on it as in step 4, then dispatch, unless it was a release of this repository that already took in this run's merges (`releases/pending` `merged` empty).
-2. Wait on the run as in step 4 (`?wait=50&status=<last seen>`) until `success`, `failure` or `cancelled`. `queued` for over ten minutes: no runner matches its `runs-on`; report it.
-3. `failure`: `git_read` `{r}/actions/runs/{id}/logs?failed=1` and read the failing step.
-   - The code: fix it on a new small `fix/<topic>` branch off the default branch (no issue needed), run the checks, push, open its pull request and merge it as in steps 3 to 5, dispatch again.
-   - Outside the code (a runner or host down, git between leaders, a network blip): dispatch again unchanged.
+1. Dispatch it as `next` says: `git` `POST {r}/actions/workflows/{file}/dispatches` `{ "ref": "<default>" }`, inputs left at their defaults, after the train's last merge (the release guard refuses an older commit). The train records the run. With `"following": true`, or a `conflict` naming a run already going (`releases/pending` `run`), that run is followed instead, never doubled; one that built a commit older than the train's tip is dispatched again once it ends.
+2. Wait on the train (`work_train` `wait`), which follows the run, or on the run itself (`git_read` `{r}/actions/runs/{id}?wait=50&status=<last seen>`). `queued` for over ten minutes: no runner matches its `runs-on`; report it.
+3. `failure` ends the train (`release failed`); its merges ride the next train's release. `git_read` `{r}/actions/runs/{id}/logs?failed=1` and read the failing step.
+   - The code: fix it on a new small `fix/<topic>` branch off the default branch (no issue needed), run the checks, push, open its pull request and board it with `work_ready`; the next train releases it with these merges.
+   - Outside the code (a runner or host down, git between leaders, a network blip): board nothing; the next train's release, or a release dispatched again once the runners are back, carries the merges (`releases/pending`).
    - The same failure three runs in a row, or one only the user can fix (a secret, a host to bring back): stop and report it with the log lines.
-4. `success`: the version is `last_release.tag_name` of `git_read` `{r}/releases/pending`, `v<version>`.
+4. `success`: the train is `installing`, its `version` the new release (`v<version>`, `last_release.tag_name` of `releases/pending`).
 
 ### Install on the mesh
 
-Only the repository the mesh runs; needs an admin key (the connector's instructions say), else report the release and stop. This job's release always goes on to the mesh update and the health check, with no question.
+Only the repository the mesh runs; needs an admin key (the connector's instructions say), else report the release and stop. The conductor's release always goes on to the mesh update and the health check, with no question.
 
 1. In parallel: `update_status`, `mesh_hosts` `health: true`, `services` (the snapshot for the health check). An update already running: follow it to the end first; never start a second.
 2. `update_control` `fetch`, then `update_status` every 15 to 30 s until `fetch` shows the new version and every host has it `fetched`. Not there after five minutes: fetch once more, then report.
 3. `update_control` `start`, noting the time. `update_status` every 15 to 30 s until it ends, reporting each host's change briefly.
-4. A host failed: quote its error. A cause outside the code (host down, download blip): `update_control` `start` with `hosts` set to the failed ones, at most twice. `couldn't fetch wintun` and Intel Macs: `update.md`. A failure in the release itself: fix forward (Released issues).
+4. A host failed: quote its error. A cause outside the code (host down, download blip): `update_control` `start` with `hosts` set to the failed ones, at most twice. `couldn't fetch wintun` and Intel Macs: `update.md`. A failure in the release itself: fix forward (step 7).
 
 ### Health check
 
@@ -83,20 +87,18 @@ Once the update has finished, in one parallel batch (a host still restarting or 
 - `host_logs` on each host, `level: "error"`, `since` the update's start: new errors (compare the same window before the update where unclear).
 - `services`: everything up in the snapshot still up.
 
-### Released issues
+It passed: `work_train` `{ "repo", "installed": true, "version": "v<version>", "evidence": "<hosts and versions, errors found or none, services>" }`; the train goes on to `verifying` and every member is told. A repository the mesh doesn't run: call it at once after the release, with the release as its evidence.
 
-Once the update finished on every host and the health check passed: for every issue `merged` listed before the release (the list empties once every host runs it), not only this run's, `git` `POST {r}/issues/{n}/comments` `{ "body": "Released in v<version>, on the mesh." }`. They closed and moved to Done when they merged; nothing waits on the release. A fix that didn't reach every host: say which in the report.
+## 7. Verify and close
 
-A failure the release caused (a panic, an error that started with the new version, a service that stopped answering): file it with the log lines, fix it on a small `fix/<topic>` branch with its own pull request (steps 3 to 5), and release, install and check again. Never roll a host back; fix forward. A failure outside the release (a host off the tailnet, a disk full): report it. The same failure after two fixes: stop and report.
+When the train is `verifying` (`your_state` `merged`, also for a merge of an earlier cancelled or abandoned train that it carries), each member checks its own issues on the mesh, the hosts now running the new version: what each issue says is fixed, seen working (a call, a page, a log line, a screenshot). Then `work_verified` `{ "repo", "evidence": "<what was checked and what it showed>" }` (its issues default to its pull request's): each gets `Released in v<version>, on the mesh. <evidence>` and closes to Done. The conductor also verifies, with `"pull": n`, each merge its `next` names whose session went quiet. Issues `releases/pending` `merged` lists that no train carries (merged before trains, or by a person) get the same from whoever installed the release: `work_verified` `{ "repo", "issues": [...], "evidence" }` (it closes only issues a merge holds), or the comment by hand.
 
-## 7. Release the claims
+A failure the release caused (a panic, an error that started with the new version, a service that stopped answering, an issue not fixed after all): `work_verified` with `"ok": false` and what failed; the issues stay open. When the train's manifest pins it on one pull request, that one is reverted first: `git revert -m 1 <its merge sha>` on a `fix/<topic>` branch, its pull request (its body says `Reverts pull request #<n>`, never naming the issue, which stays open), checks, `work_ready` with `"revert": true` (a revert goes first on the next train); then fix forward with its own pull request saying `Closes #n` on a later train. Not pinned on one: file it with the log lines and fix forward. Never roll a host back. A failure outside the release (a host off the tailnet, a disk full): report it. The same failure after two fixes: stop and report.
 
-Once the run is over: `work_release` `{ "repo": "<owner>/<repo>", "outcome": "done", "summary", "note" }`, the note an update for the next agents in the repository (what changed, what to watch); issues dropped were moved back to To do already.
+## 8. Release the claims, with the evidence
 
-## 8. Evidence
-
-Each issue's comment once its pull request merges, or its released comment, carries its evidence that it is fixed: the test that covers it, or what was checked on the mesh. An issue another run merged gets the released comment alone.
+Once the train is `done`: `work_release` `{ "repo": "<owner>/<repo>", "outcome": "done", "summary", "note" }`, the note an update for the next agents in the repository (what changed, what to watch); issues dropped were moved back to To do already. Each issue's closing comment carries its evidence: the test that covers it and what was checked on the mesh.
 
 ## Report
 
-Lead with the result: the version now on the mesh, how many issues wait for a release, or where the run stopped and why. Then one line per pull request (number, branch, issues, merge commit, checks), one per issue (number, title, pull request, release, Done or why not, and a scoped one's `Scope:` comment link), the issues filed and those left to others, each `Question:` asked, each call refused, the issues waiting for a release, branches deleted and left, each run cancelled, each release run and its outcome, each host's version, and what the health check found, evidence lines verbatim.
+Lead with the result: the version now on the mesh, how many issues wait for a release, or where the run stopped and why. Then one line per train (number, members, conductor, release run, version, outcome), one per pull request (number, branch, issues, merge commit, checks), one per issue (number, title, pull request, release, Done or why not, and a scoped one's `Scope:` comment link), the issues filed and those left to others, each `Question:` asked, each call refused, the issues waiting for a release, branches deleted and left, each run cancelled, each release run and its outcome, each host's version, and what the health check found, evidence lines verbatim.

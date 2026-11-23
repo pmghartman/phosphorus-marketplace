@@ -14,7 +14,7 @@ Repositories on `git.<domain>` are worked on as GitHub ones and never through Gi
 
 ## Who you act as
 
-The user the connector's instructions name ("This key acts as `<user>`"); `git_read` `/user` returns the same as `login`. That is `<user>` below: the board's `assignee`, the assignee of the issues the user reports, and the commit identity `<user>` `<user>@git.<domain>`. An agent takes only issues assigned to `<user>` or to no one (`agents.md`).
+The user the connector's instructions name ("This key acts as `<user>`"); `git_read` `/user` returns the same as `login`. That is `<user>` below: the board's `assignee`, the author (who asked for it) of the issues filed for the user, and the commit identity `<user>` `<user>@git.<domain>`. Taking an issue assigns it to `<user>`; any agent may take any open issue, one held or assigned elsewhere opening a thread with them (`agents.md`).
 
 Access follows the mesh's users. Admins administer all public repositories; a private one is visible only to its owner and collaborators. On a public repository everyone else gets the code (files, commits, branches, tags, clone) and releases; issues, pull requests, the wiki and actions belong to the owner, collaborators and admins, and only those with write access run workflows.
 
@@ -41,7 +41,7 @@ Each repository's issues show as a board in three columns: `todo` (To do), `doin
 
 - `git_read` `{r}/board` returns `columns` (each `id`, `title`, `issues`, the latest to arrive first; Done holds closed issues not yet archived, up to 200), and `subdomains` (from a subdomains file, each with its `paths`). `?assignee={user}` keeps the issues assigned to that user, alone or with others; `?unassigned=true` the ones assigned to no one, and with `assignee` either; `?label={subdomain}` one subdomain.
 - Every issue carries `board`, `subdomain`, `labels`, `assignees`, `comments` (a count; collaborators annotate cards with comments) and `linked_pulls` (the pull requests whose title or body names `#n`, each `index`, `title`, `state`, `merged`). An issue with an open linked pull request shows In progress.
-- Move or file one: `git` `POST {r}/issues/{n}/board` `{ "column": "todo"|"doing"|"done", "subdomain": "<name>" }`, either of them; `subdomain: null` takes it off, a new name makes the label; with a subdomains file a name outside it is refused. A pull request opened naming an open issue with none sets it to the subdomain most of the pull's changed files fall in. Never set the `status/` labels by hand: they are the board's own. Moving one to `doing` takes it for this session: refused `forbidden` when it is assigned only to other users, `conflict` while another agent's live claim holds it (`agents.md`).
+- Move or file one: `git` `POST {r}/issues/{n}/board` `{ "column": "todo"|"doing"|"done", "subdomain": "<name>" }`, either of them; `subdomain: null` takes it off, a new name makes the label; with a subdomains file a name outside it is refused. A pull request opened naming an open issue with none sets it to the subdomain most of the pull's changed files fall in. Never set the `status/` labels by hand: they are the board's own. Moving one to `doing` takes it for this session and assigns it to `<user>`; one another agent's live claim holds, or another user is assigned to, is taken all the same and they get an update, to settle with them before editing (`agents.md`).
 - Merging into the default branch a pull request whose title, body or commits say `Closes #n` (or `Refs #n`) closes the issue and moves it to Done, in every repository; pushing commits that say `Closes #n` there does too. Write `Closes #n`. Done issues are archived a day after closing.
 
 ## Filing an issue
@@ -50,8 +50,8 @@ A problem or change the user raises about a repository's code, and a problem fou
 
 1. Search first: `git_read` `{r}/issues?state=open&q={words}`. A match gets a comment (`POST {r}/issues/{n}/comments`) instead.
 2. `git` `POST {r}/issues` with `title` a short plain sentence (no `[tag]`), and `body` plain text with the user's point, the evidence found and how anyone will know it is fixed. Markdown in either is refused (`bad_input`: headings, lists, quotes, tables, code, bold, links). No labels for its kind.
-3. A point the user raised: `"assignees": ["<user>"]`; without `assignees` an issue lands unassigned. Then `git` `POST {r}/issues/{n}/board` `{ "column": "todo", "subdomain": "<its part>" }`; `"column": "doing"` in the `POST {r}/issues` starts it at once.
-4. A problem found along the way is filed the same way but with no `assignees`: it lands in To do unassigned and stays unassigned through every stage, so any user's agent can take it up (its claim shows who). It is not the work in hand: no `"column": "doing"`, and the board call sets only its `subdomain`.
+3. A point the user raised: no `assignees`; it lands in To do unassigned, its author `<user>` shown as who asked for it, and taking it assigns it. Then `git` `POST {r}/issues/{n}/board` `{ "column": "todo", "subdomain": "<its part>" }`; `"column": "doing"` in the `POST {r}/issues` starts it at once.
+4. A problem found along the way is filed the same way: it lands in To do unassigned until an agent takes it, any user's agent may. It is not the work in hand: no `"column": "doing"`, and the board call sets only its `subdomain`.
 5. Name each issue filed or commented on in the report.
 
 ## Working copy

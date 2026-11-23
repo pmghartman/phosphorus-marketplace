@@ -4,7 +4,7 @@ The user asks to fix a repository's issues ("fix the issues on phosphorus", "cle
 
 A call the connector's scopes refuse (`forbidden`) is never worked around by another tool, path or sign-in: go on with the other issues and name what was refused in the report.
 
-Read `git.md` with this file: its API, board, filing and working-copy sections are the how; this file is the order. Reads are `git_read`, writes `git`, paths under `{r}` = `/repos/{owner}/{repo}`. `<user>` is the user you act as (`git.md`, Who you act as).
+Read `git.md` and `agents.md` with this file: git's API, board, filing and working-copy sections are the how, agents' the claims, notes and runner turns other agents rely on; this file is the order. Reads are `git_read`, writes `git`, paths under `{r}` = `/repos/{owner}/{repo}`. `<user>` is the user you act as (`git.md`, Who you act as).
 
 The repository the mesh runs is the one its update feed is read from: pmh/phosphorus unless the mesh was pointed elsewhere. Its release goes on to install on the mesh (step 6); other repositories end at step 6's release. In every repository commit and pull request bodies say `Closes #n`, and the merge closes each issue and moves it to Done.
 
@@ -12,14 +12,14 @@ Every change is an issue. Keep a running list of each pull request (number, bran
 
 ## 1. Pick the work
 
-1. File each problem or change the user raised as its own issue (`git.md`, Filing an issue) before any fix, and the same for points raised later in the conversation. `"column": "doing"` in the `POST {r}/issues` files and starts one in one call. These are assigned to `<user>`, so they are always the run's work.
-2. In parallel, once a run: `git_read` `{r}/board?assignee=<user>` and `git_read` `{r}` (`default_branch`). The work is every issue in `doing` then `todo` whose assignees include `<user>`, alone or with others, oldest first within a column. An issue assigned only to others, or to no one, is not the run's work even when the user asks to clear the board: leave it and name it in the report. After this read, the only board calls are the moves below.
-3. Read each issue once, all in parallel: `git_read` `{r}/issues/{n}` and `{r}/issues/{n}/comments`. Its `linked_pulls` holds an open pull request this run didn't open: someone's work in hand; skip it and say so. It needs a decision only the user can make (a design choice, a secret, missing facts): post one comment that asks it, leave it in To do, go on (a Fix issues run's question shows in the Agents app's Needs you as choices). The comment is plain text: `Question: <header, at most 12 characters>`, the question on its own lines, a blank line, `Pick one:` (`Pick any:` only when the choices aren't exclusive), then 2 to 4 lines `1. <label> - <what it means>`, the recommended one first with ` (Recommended)` ending its label; no Other choice, the page adds one. With no real choices, write the `Question:` line and the question alone. An issue whose newest comment starts `Question:` waits for its owner: skip it. One with an answer below its `Question:` is ready (any later comment; the page writes `Answer: <label>`, labels joined by commas for `Pick any:`, or the person's own words, maybe more after a blank line): read the answer and do the work.
+1. File each problem or change the user raised as its own issue (`git.md`, Filing an issue) before any fix, and the same for points raised later in the conversation, with `"assignees": ["<user>"]`. `"column": "doing"` in the `POST {r}/issues` files and starts one in one call. These are the run's work.
+2. In parallel, once a run: `git_read` `{r}/board?assignee=<user>&unassigned=true`, `work_board` `{ "repo": "<owner>/<repo>" }` and `git_read` `{r}` (`default_branch`). The work is every issue in `doing` then `todo` assigned to `<user>` (alone or with others) or to no one, oldest first within a column, less those another session's live or idle claim holds (`agents.md`): leave those and name them in the report. An issue assigned only to other users is theirs, even when the user asks to clear the board: leave it and name it. After these reads, the only board calls are the moves below.
+3. Read each issue once, all in parallel: `git_read` `{r}/issues/{n}` and `{r}/issues/{n}/comments`. Its `linked_pulls` holds an open pull request this run didn't open, or another session's claim holds it: someone's work in hand; skip it and say so. It needs a decision only the user can make (a design choice, a secret, missing facts): post one comment that asks it, leave it in To do, go on (a Fix issues run's question shows in the Agents app's Needs you as choices). The comment is plain text: `Question: <header, at most 12 characters>`, the question on its own lines, a blank line, `Pick one:` (`Pick any:` only when the choices aren't exclusive), then 2 to 4 lines `1. <label> - <what it means>`, the recommended one first with ` (Recommended)` ending its label; no Other choice, the page adds one. With no real choices, write the `Question:` line and the question alone. An issue whose newest comment starts `Question:` waits for its owner: skip it. One with an answer below its `Question:` is ready (any later comment; the page writes `Answer: <label>`, labels joined by commas for `Pick any:`, or the person's own words, maybe more after a blank line): read the answer and do the work.
 4. Working copy, once: `git_clone` where there is none, with `branch` the first group's branch (step 2), else the checkout here (`git.md`, Working copy). Read the repository's `CLAUDE.md` or README for its check commands.
 
 ## 2. Plan the run
 
-Group the issues before the first change: those in the same subdomain, crate, app or files share one pull request (issues touching the same files always do); a lone issue can be its own. Each group has its own `<kind>/<topic>` branch named for its change (`fix/git-board-issues`).
+Group the issues before the first change: those in the same subdomain, crate, app or files share one pull request (issues touching the same files always do); a lone issue can be its own. Each group has its own `<kind>/<topic>` branch named for its change (`fix/git-board-issues`). Claim each group's issues, branch and paths with `work_claim` as the plan settles, and settle each overlap it reports by `work_note` before editing those paths; a subagent working a group claims it in its own session, so the main session lets those issues go first (`drop_issues`).
 
 - A clear issue (one crate or page, no design choice, no change to stored state, a protocol or an API others use) is fixed directly, with no scoping pass.
 - A broader or unclear issue is scoped before any change: find where and what, and post it as a comment that starts `Scope:` with the files and functions, the cause or the change, what must not change, and the checks to run. An issue that already has a `Scope:` comment, or a body that names its files, is not explored again: trust it and check as you open files.
@@ -30,8 +30,8 @@ Group the issues before the first change: those in the same subdomain, crate, ap
 
 For each issue in the group:
 
-1. Move it to In progress: `git` `POST {r}/issues/{n}/board` `{ "column": "doing" }`. Make the fix, with a test only where the repository's rules ask for one.
-2. Commit, one commit for the issue, its body ending `Closes #n`, and push the branch: `git push -u origin <branch>`. Don't merge.
+1. Move it to In progress: `git` `POST {r}/issues/{n}/board` `{ "column": "doing" }`; that claims it for this session. A `conflict` or `forbidden` answer means it is not this run's to take: leave it, name it in the report, go on. Make the fix, with a test only where the repository's rules ask for one.
+2. Commit, one commit for the issue, its body ending `Closes #n`. Push the branch (`git push -u origin <branch>`) once the group's commits are ready rather than after each one: every push starts the shared runners. Don't merge.
 
 Checks belong to the mesh, not to where the agent runs. Before the pull request, run them on the pushed branch: `job_run` `{ "repo": "<owner>/<repo>", "ref": "<branch>", "command": "<the checks>" }` (`host` or `labels` to choose the host; needs `git:code`), then `job_list` `{ "job", "wait": 50, "status": "<last seen>" }` until `success`, `failure`, `cancelled` or `lost`. `failure`: read `job_log`, fix in a new commit, push, run again. The job runs in a fresh checkout that is removed when it ends; `PHOS_REPO_KEEP` outlives it and holds `CARGO_TARGET_DIR` unless `env` sets one, so builds stay warm. No `job_run` on this key (a Fix issues run already works on a mesh host): run them in the checkout.
 
@@ -58,7 +58,7 @@ Then `git fetch origin --prune && git checkout -B <default> origin/<default>`, r
 
 After the merges, `git_read` `{r}/releases/pending`: `merged` lists the issues whose merged pull requests are not yet in the release every host runs (closed already; always empty outside the repository the mesh runs), `run` the id of a release run already queued or running. Release whenever something merged in this run, or `merged` is not empty: no question, no batching; a run already queued or running (`run`) is followed instead of dispatching another. The release workflow is a file under `.phosphorus/workflows/` (or `.github/workflows/`) with `on: workflow_dispatch` (`release.yml` in phosphorus); none: say so and stop here.
 
-1. `git` `POST {r}/actions/workflows/{file}/dispatches` `{ "ref": "<default>" }`, inputs left at their defaults. It returns the run's `id`. With `"following": true` it is another session's run of the same workflow: follow that run and don't dispatch again.
+1. `git` `POST {r}/actions/workflows/{file}/dispatches` `{ "ref": "<default>" }`, inputs left at their defaults. It returns the run's `id`. With `"following": true` it is another session's run of the same workflow: follow that run and don't dispatch again. A `conflict` names the run that holds the runners' turn (`agents.md`): wait on it as in step 4, then dispatch, unless it was a release of this repository that already took in this run's merges (`releases/pending` `merged` empty).
 2. Wait on the run as in step 4 (`?wait=50&status=<last seen>`) until `success`, `failure` or `cancelled`. `queued` for over ten minutes: no runner matches its `runs-on`; report it.
 3. `failure`: `git_read` `{r}/actions/runs/{id}/logs?failed=1` and read the failing step.
    - The code: fix it on a new small `fix/<topic>` branch off the default branch (no issue needed), run the checks, push, open its pull request and merge it as in steps 3 to 5, dispatch again.
@@ -89,7 +89,11 @@ Once the update finished on every host and the health check passed: for every is
 
 A failure the release caused (a panic, an error that started with the new version, a service that stopped answering): file it with the log lines, fix it on a small `fix/<topic>` branch with its own pull request (steps 3 to 5), and release, install and check again. Never roll a host back; fix forward. A failure outside the release (a host off the tailnet, a disk full): report it. The same failure after two fixes: stop and report.
 
-## 7. Evidence
+## 7. Release the claims
+
+Once the run is over: `work_release` `{ "repo": "<owner>/<repo>", "outcome": "done", "summary", "note" }`, the note an update for the next agents in the repository (what changed, what to watch); issues dropped were moved back to To do already.
+
+## 8. Evidence
 
 Each issue's comment once its pull request merges, or its released comment, carries its evidence that it is fixed: the test that covers it, or what was checked on the mesh. An issue another run merged gets the released comment alone.
 

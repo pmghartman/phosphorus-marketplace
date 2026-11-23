@@ -45,6 +45,7 @@ Read the one that fits before the first call; a one-tool question needs none. Re
 - Models: `models` shows which mesh host's model each agent (tavern while Tavern is installed) is assigned and answering with; `set_agent_model` assigns one (admin).
 - The user's Phosphorus window: `open_file` opens a share's file in an editor tab, `open_terminal` a shared terminal tab.
 - Agent jobs (`ws_*`, `job_*`, `artifact_*`, `recipe_*`): `agents_hosts` describes them. `job_run` with `repo` and `ref` runs a command in a fresh checkout of a pushed ref of a mesh repository; wait on a job with `job_list` `job` and `wait`.
+- Claude Code sessions on mesh hosts, as the Agents app starts them (Remote Control on, the full tool set, a clone or an empty folder): `session_start` starts one, `session_read` reads its state, its screen and its latest conversation (`ask` is a permission prompt it waits at), `session_send` sends it a message, answers its prompt, switches its mode, interrupts or ends it.
 - What agents did on the mesh: `agent_sessions` (each session's calls and errors; with `session`, its events, each issue's steps and its cost by tool)).
 
 ## Errors

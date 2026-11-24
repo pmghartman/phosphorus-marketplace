@@ -8,6 +8,11 @@
       "description": "Phosphorus mesh skill: hosts, services, files, terminals, git, chat. Pairs with your mesh's connector.",
       "name": "phosphorus",
       "source": "./plugins/phosphorus"
+    },
+    {
+      "name": "bismuth",
+      "description": "The Bismuth language (.bi files) and its compiler bic: write, read and debug Bismuth. Updated with every bic release.",
+      "source": "./plugins/bismuth"
     }
   ]
 }

@@ -61,6 +61,7 @@ part of the name is what the code uses, or `as` picks another
 | `std.os.windows.d3d11` | Direct3D 11, Windows only (d3d11.dll loaded at run time): `createDevice(driverType, flags, featureLevels, adapter) : Created { device, context, featureLevel } ! com.HrError`, `createDeviceAndSwapChain`; `Device` (`createBuffer` `createTexture2D` `createShaderResourceView` `createUnorderedAccessView` `createRenderTargetView` `createDepthStencilView` `createInputLayout` `createVertexShader` `createPixelShader` `createComputeShader` `createBlendState` `createDepthStencilState` `createRasterizerState` `createSamplerState` `createQuery` `createDeferredContext` `openSharedResource` `checkFormatSupport` `checkMultisampleQualityLevels` `getFeatureLevel` `getCreationFlags` `getDeviceRemovedReason` `getImmediateContext` `dxgiDevice` `multithread` `videoDevice`), `DeviceContext` (`map` `unmap` `copyResource` `copySubresourceRegion` `updateSubresource` `resolveSubresource` `generateMips` the clears, the `ia*` `vs*` `ps*` `cs*` `om*` `rs*` setters, `draw*` `dispatch` `begin` `end` `getData` `clearState` `flush` `getType` `finishCommandList` `executeCommandList` `context1` `videoContext`), `DeviceContext1` (`copySubresourceRegion1` `discardResource` `discardView` `vsSetConstantBuffers1` `psSetConstantBuffers1` `csSetConstantBuffers1` `clearView`), `Resource` `Buffer` `Texture2D` (`getDesc`), the views, shaders and state objects, `Query`, `CommandList`, `Multithread`, `VideoDevice` `VideoContext` `VideoContext1` `VideoProcessorEnumerator` `VideoProcessor` and its views; layouts `BufferDesc` `Texture2DDesc` `SubresourceData` `MappedSubresource` `Box` `Viewport` `Rect` `BlendDesc` `RenderTargetBlendDesc` `RasterizerDesc` `DepthStencilDesc` `DepthStencilOpDesc` `SamplerDesc` `InputElementDesc` `QueryDesc` `QueryDataTimestampDisjoint` the view descs (`buffer` `texture2D`) and the video processor's; `DRIVER_TYPE_*` `FEATURE_LEVEL_*` `CREATE_DEVICE_*` `USAGE_*` `BIND_*` `CPU_ACCESS_*` `MAP_*` and the rest, `IID_ID3D11*`; each vtable slot as `ID3D11<INTERFACE>_<METHOD>` with its function type. See [below](#direct3d-11-and-dxgi) |
 | `std.os.signal` | signals as values: `listen(sigs) : Chan<int>` (each signal as it arrives; listening replaces the default action until `reset(sig)`), `ctrlC()` and `shutdown()` (async: the next Ctrl-C; the next TERM, INT or HUP), `name(sig)`; `INT` `TERM` `HUP` `QUIT` `USR1` `USR2` `WINCH` `CHLD` `ALRM`. On Windows: Ctrl-C (`INT`), Ctrl-Break (`QUIT`), console close (`HUP`), logoff and shutdown (`TERM`) |
 | `std.sync` | coordination between tasks (Tokio's sync): `Oneshot<T>` (`send` once, `recv` `recvTimeout` `tryRecv` `close`), `Notify` (`notifyOne` `notifyAll` `wait` `waitTimeout`), `Semaphore` (`acquire(n)` `acquireTimeout` `tryAcquire` `release(n)` `with(f)` `available` `close`), `RwLock<T>` (`read(f)` `write(f)` `get` `set`, writers first), `Watch<T>` (`send` `update` `get` `watch() : Watcher<T>` with `changed` `changedTimeout` `get` `hasChanged`), `Broadcast<T>` (`send` `subscribe() : Subscriber<T>` with `recv` `recvTimeout` `tryRecv` `lagged`, `for v in sub`), `CancelToken` (`cancel` `isCancelled` `cancelled()` `cancelledTimeout` `child()`), `WaitGroup` (`add` `done` `wait`), `Barrier` (`wait`) |
+| `std.actions` | subscribable actions, a lightweight signal type: `Action<T>`, usually a field (`actions.Action<int> damaged = {};`), with `subscribe(fn(view T)) : u64`, `unsubscribe(id) : bool`, `emit(view T)`, `has(id)`, `len`, `isEmpty`, `clear`; see [below](#actions) |
 | `std.stream` | streams of values and bytes (tokio-util, futures-util): any iterator is a stream (`for`, `linq.fromIter`); `merge(sources) : Chan<T>`, `forward(it, sender)`, `buffered(it, n, f)` and `bufferUnordered(it, n, f)` (up to n calls of f at once, in detached tasks, so f must not capture the caller's locals); codecs over a `net.Stream`: `lengthDelimited() : LengthCodec { prefixBytes, bigEndian, maxFrame }` with `read` `write` `frames(s)`, `lines(s, maxLen)`, `chunks(s, size)`; `chunkReader(it)` reads a stream of byte lists as bytes (`read` `readExact` `readLine` `readAll`) |
 | `std.io.poll` | readiness of any descriptor (mio): `readable(fd, timeout)` and `writable(fd, timeout)` (async; in a task through the scheduler's poller), `forget(fd)` before closing one, `setNonBlocking(fd)`, `wouldBlock()`, `waitHandle(h, timeout)` (Windows: events, processes and other waitable handles); `PollError` (`Timeout` `Cancelled` `Closed` `Failed`) |
 | `std.io.fs` | `read(path) : List<u8> ! IoError`, `readText`, `write`, `append`, `writeBytes`, `exists`, `remove`, `setExecutable`, `makeDir`, `makeDirAll`, `removeDir`, `removeAll`, `listDir`, `stat` and `lstat` (`FileInfo`: kind, size, mode, times, inode, device, links, uid, gid), `rename`, `realPath`, `symlink`, `readLink`, `setTimes`, `chmod`, `chown`, `syncDir`, `open(path, mode, perm) : File` (modes `read` `write` `append` `readWrite` `createNew`) with `read` `readAll` `write` (text) `writeBytes` (a `List<u8>`) `writeSlice` (a `Slice<u8>`) `sync` `close`; wide (UTF-16) paths on Windows |
@@ -124,6 +125,60 @@ part of the name is what the code uses, or `as` picks another
 | `std.encoding.toml` | TOML 1.0: `parse(text) : Table ! TomlError`, `encode(table) : str`; `Table` (`get` `at(path)` `set` `has` `getStr` `getInt` `getFloat` `getBool` `getDateTime` `getArray` `getTable` `keys`, `for k, v in t`, `equals` `deepCopy`), `Array`, `Value` (`String` `Integer` `Float` `Boolean` `DateTime` `Array` `Table`; `asStr` ... `typeName` `str`), `DateTime` on `std.time`'s `Date` and `Time`; see [below](#toml) |
 | `std.encoding.yaml` | YAML 1.2: `parse(text, Options) : Value ! YamlError` (the first document), `parseAll`, `stringify(v)`, `stringifyAll`, `stringifyFlow`; `encode(value)`, `decode<T>(text)`, `decodeAll<T>`, `decodeValue<T>` (typed, with `@serde` attributes, as json's); `Value` (`Null` `Bool` `Int` `Float` `Str` `Seq` `Map` `Tagged`) with `v["key"]`, `v[i]`, `bool` `int` `float` `str` `tag` `untagged` `kind` `keys` `items` `entries` `set` `push` `equals`; events: `Parser` (`next() : Event`), `parseEvents`, `Event` (`kind` `anchor` `tag` `value` `style` `flow` `implicit` `line` `col`), `eventText`; `Emitter` (`emit(event)`, `value(v)`, `doc(d)`, `take`); `load(text) : List<Doc>` (documents as node graphs); `Options { maxAliasNodes, maxDepth }`; see [below](#yaml) |
 | `std.linq` | lazy queries: `xs.query().where(...).orderBy(...).select(...).toList()` over List, Slice, Map and every collection; see [below](#linq) |
+
+## actions
+
+`std.actions` is a small observer list for game scripts and programs: a
+struct holds an `Action<T>` field, whoever is interested subscribes to it,
+and the struct emits it when the thing happens (C# events, or a Rust
+`Vec<(u64, Box<dyn Fn(&T)>)>`).
+
+```bismuth
+import std.actions;
+
+struct Door {
+    str name;
+    actions.Action<str> opened = {};     // a field starts with no listeners
+
+    fn open(view self, str by) { self.opened.emit(by); }
+}
+
+struct Log { List<str> lines = List<str>(); }
+
+fn main() {
+    var door = Door { name: "gate" };
+    var log = new Log {};                // listeners outlive the call: share state
+    let id = ref door.opened.subscribe(who => { ref log.lines.push("opened by {who}"); });
+    door.open("ann");
+    ref door.opened.unsubscribe(id);
+    door.open("bob");
+    print("{log.lines}");                // ["opened by ann"]
+}
+```
+
+| `Action<T>` | |
+|---|---|
+| `Action<T> {}`, `new() : Action<T>` | an action with no listeners; as a field, `actions.Action<T> name = {};` (a field needs its default written, as every field does) |
+| `subscribe(ref self, fn(view T) listener) : u64` | adds a listener; the id, counting from 0, is never reused by this action |
+| `unsubscribe(ref self, u64 id) : bool` | removes that listener; false when it is not subscribed |
+| `emit(view self, view T value)` | calls the listeners in the order they subscribed |
+| `has(view self, u64 id) : bool`, `len`, `isEmpty` | the listeners there are |
+| `clear(ref self)` | removes every listener |
+
+- `subscribe`, `unsubscribe` and `clear` change the action, so the call is
+  marked: `ref enemy.damaged.subscribe(...)`; `emit` is not.
+- `emit` calls the listeners subscribed when it starts. One that
+  subscribes or unsubscribes during the emit, through a `Shared` handle to
+  the action's owner, changes the next emit rather than this one, so a
+  listener may remove itself.
+- A listener outlives the call that subscribes it, so it can't capture a
+  local of a block the action outlives, `self` of a method included. The
+  compiler says so ("this lambda captures self by reference and is stored
+  in damaged, which outlives self"). Capture `Shared` handles or values instead,
+  or keep the state a listener changes in a `Shared`.
+- An `Action` is a value: copying its owner copies the listener list.
+  Listeners run on the emitting task; an action is not shared between
+  tasks (send values over a `Chan` or `std.sync.Broadcast` for that).
 
 ## collections
 

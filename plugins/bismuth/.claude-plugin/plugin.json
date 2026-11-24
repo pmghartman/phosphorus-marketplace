@@ -1,6 +1,6 @@
 {
   "name": "bismuth",
-  "version": "0.1.1394",
+  "version": "0.1.1397",
   "description": "The Bismuth language (.bi files) and its compiler bic: write, read and debug Bismuth. Updated with every bic release.",
   "author": {
     "name": "Bismuth"

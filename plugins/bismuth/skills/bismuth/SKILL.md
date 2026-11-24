@@ -374,6 +374,38 @@ fn main() {
 - Lambdas: `x => expr`, `(a, b) => expr`, `(int a) => { ...; value }`.
   They capture locals by reference, so a lambda must not outlive what it
   captures (returning or storing one that does is an error).
+- Subscribable actions: `std.actions` has `Action<T>`, usually a field
+  (`actions.Action<int> scored = {};`: fields need their default written)
+  with `ref s.scored.subscribe(fn(view T)) : u64`, `ref s.scored.unsubscribe(id)`
+  and `s.scored.emit(value)`. A listener outlives the subscribing call, so
+  it can't capture locals or a method's `self`: keep shared state in a
+  `Shared`.
+
+```bismuth
+import std.actions;
+
+struct Player {
+    int points = 0;
+    actions.Action<int> scored = {};
+
+    fn score(ref self, int n) {
+        self.points += n;
+        self.scored.emit(n);
+    }
+}
+
+struct Hud { int shown = 0; }
+
+fn main() {
+    var p = Player {};
+    var hud = new Hud {};
+    let id = ref p.scored.subscribe(n => { hud.shown += n; });
+    ref p.score(10);
+    ref p.scored.unsubscribe(id);
+    ref p.score(5);
+    print("{p.points} {hud.shown}");   // 15 10
+}
+```
 
 ## Collections
 
@@ -590,6 +622,7 @@ The prelude (`std.core`) needs no import: `print` `eprint` `printRaw`,
 | `std.crypto`, `std.crypto.x509`, `std.uuid`, `std.rand` | hashes, HMAC, AEADs, keys, certificates, UUIDs, random numbers |
 | `std.collections`, `std.linq`, `std.text.regex` | more collections, lazy queries, regular expressions |
 | `std.sync`, `std.stream` | more task coordination, stream utilities |
+| `std.actions` | subscribable actions: an `Action<T>` field with `subscribe` `unsubscribe` `emit` |
 | `std.io.compression.*` | `deflate` `zlib` `gzip` `lz4` |
 | `std.window`, `std.gfx`, `std.gfx.image`, `std.gfx.model`, `std.ui`, `std.audio`, `std.gamepad`, `std.noise`, `std.collision` | windows and input, GPU rendering (Vulkan, D3D11/12, Metal), images and PNG, 3D models, immediate-mode GUI, audio, gamepads, noise, collision |
 | `std.interop.dl`, `std.interop.com`, `std.interop.winrt`, `std.interop.objc` | C libraries at run time, COM (calling and implementing), WinRT, Objective-C |

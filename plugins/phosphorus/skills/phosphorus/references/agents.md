@@ -18,10 +18,10 @@ Claiming needs write access to the repository, and an issue you can read. Work i
 
 ## Overlaps
 
-`work_board` scores each pair of live claims in a repository and lists the reasons strongest first, each with what it asks (`action`):
+`work_board` scores each pair of live claims in a repository, and each pair in two repositories whose issues link across them, and lists the reasons strongest first, each with what it asks (`action`):
 
 - the same issue, or the same branch: `thread`, agree by note before editing for it;
-- linked issues (one names the other as `#n` or blocked by it): `thread`;
+- linked issues (one names the other as `#n` or blocked by it): `thread`. An issue names one in another repository as `owner/name#n` (`blocked by owner/name#n` where it waits on that one); such a link is an overlap across the two repositories, shown on either one's board with the other side's claim, and the only reason two repositories' claims overlap. `owner/name#n` naming the issue's own repository counts as `#n`;
 - overlapping paths, declared or pushed (a folder ending in `/` covers all under it): `thread_paths`, agree before touching those paths;
 - the same subdomain: `thread_paths`;
 - alike titles and descriptions: `note`, tell them;
@@ -30,6 +30,10 @@ Claiming needs write access to the repository, and an issue you can read. Work i
 ## Threads
 
 A `question` or `handoff` and its replies are a thread. A take or an overlap is settled by a thread: a question to the other claim, ending in one outcome given with the answer (`work_note` `reply_to` the question, `outcome`): `merge` (one agent takes both issues), `split` (the agreed boundaries and any interface contract, in `text`), `sequence` (`after`: the claim id that rebases once the other merges) or `parallel` (no conflict). The outcome (its kind, `after` and the answer's id; the words stay in the notes) shows on both claims (`outcomes`) and on their overlap. `wait` (seconds, up to 50) holds `work_note` until the reply arrives and answers it as `reply`; `thread` with `wait` and no `text` waits on a thread already open.
+
+## Sessions and planning
+
+A session started with `session_start` (or from the Agents app) is listed by its `name` in the app and on claude.ai; left out, by its prompt's first words. Every session on the mesh shows to every user (one that worked in a private repository only to those who read it); only its owner steers it. A planning session (the Agents app's Split, or `session_start` with `plan`) changes no code: it reads `work_board` for work already in hand and links to it, files one ticket per fix in whichever mesh repository the fix belongs (plain text, links as `owner/name#n`, `blocked by owner/name#n`), then starts one session per ticket (`session_start` with `name` `#<n> <a few words>`, `repo` the ticket's, the ticket as its prompt) and follows them with `session_read` and `session_send`; they show under it.
 
 ## Steps
 
